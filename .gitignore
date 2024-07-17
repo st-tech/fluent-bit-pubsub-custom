@@ -1,6 +1,7 @@
 .idea
 local_env.sh
-coverage.txt
+coverage.*
 *.so
 *.h
 /bin
+.env*

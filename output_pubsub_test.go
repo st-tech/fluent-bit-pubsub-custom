@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/pubsub"
 
 	"github.com/fluent/fluent-bit-go/output"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,7 +66,12 @@ func (o *testOutput) GetRecord(dec *output.FLBDecoder) (ret int, ts interface{},
 
 func TestFLBPluginInit(t *testing.T) {
 	assert := assert.New(t)
+	err := godotenv.Load()
+	if err != nil {
+		t.Log("Error loading .env file")
+	}
 	wrapper = OutputWrapper(&testOutput{})
+
 	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" {
 		assert.Equal(output.FLB_ERROR, FLBPluginInit(nil))
 	} else {
@@ -75,6 +81,10 @@ func TestFLBPluginInit(t *testing.T) {
 
 func TestFLBPluginFlush(t *testing.T) {
 	assert := assert.New(t)
+	err := godotenv.Load()
+	if err != nil {
+		t.Log("Error loading .env file")
+	}
 	wrapper = OutputWrapper(&testOutput{})
 	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" {
 		return

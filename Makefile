@@ -32,6 +32,12 @@ build-linux-fast:
 	fi
 	docker exec $(CONTAINER_NAME) sh -c "cd /build && go build -buildmode=c-shared -o pubsub.so ."
 	docker stop $(CONTAINER_NAME)
+
+test:
+	go test -v -race  -coverprofile=coverage.txt -covermode=atomic ./...
+
+cover:
+	go tool cover -html=coverage.txt
 	
 clean:
 	@if [ $$(docker ps -a | grep $(CONTAINER_NAME) | wc -l) -eq 1 ]; then \
