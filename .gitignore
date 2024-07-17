@@ -1,3 +1,6 @@
 .idea
 local_env.sh
 coverage.txt
+*.so
+*.h
+/bin

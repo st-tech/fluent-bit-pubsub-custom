@@ -31,7 +31,6 @@ $ bash make.sh build_linux
 | ----------------|------------------------------------------------|----------------|
 | Project         | google cloud project id | NONE(required) |
 | Topic           | google pubsub topic name | NONE(required) |
-| JwtPath         | jwt file path for accessible google cloud project | NONE(required) |
 | Debug           | print debug log | false(optional) |
 | Timeout         | the maximum time that the client will attempt to publish a bundle of messages. (millsecond) | 60000 (optional)|
 | DelayThreshold  | publish a non-empty batch after this delay has passed. (millsecond) | 1  |
@@ -45,7 +44,6 @@ $ bash make.sh build_linux
     Match *
     Project your-project(custom)
     Topic your-topic-name(custom)
-    Jwtpath your-jwtpath(custom)    
 ```
 
 ### Example exec

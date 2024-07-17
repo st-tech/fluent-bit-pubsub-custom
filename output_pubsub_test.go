@@ -30,9 +30,6 @@ func (o *testOutput) GetConfigKey(ctx unsafe.Pointer, key string) string {
 	if key == "Topic" {
 		return os.Getenv("TOPIC_NAME")
 	}
-	if key == "JwtPath" {
-		return os.Getenv("JWT_PATH")
-	}
 	if key == "Debug" {
 		return "true"
 	}
@@ -69,8 +66,7 @@ func (o *testOutput) GetRecord(dec *output.FLBDecoder) (ret int, ts interface{},
 func TestFLBPluginInit(t *testing.T) {
 	assert := assert.New(t)
 	wrapper = OutputWrapper(&testOutput{})
-	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" ||
-		os.Getenv("JWT_PATH") == "" {
+	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" {
 		assert.Equal(output.FLB_ERROR, FLBPluginInit(nil))
 	} else {
 		assert.Equal(output.FLB_OK, FLBPluginInit(nil))
@@ -80,8 +76,7 @@ func TestFLBPluginInit(t *testing.T) {
 func TestFLBPluginFlush(t *testing.T) {
 	assert := assert.New(t)
 	wrapper = OutputWrapper(&testOutput{})
-	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" ||
-		os.Getenv("JWT_PATH") == "" {
+	if os.Getenv("PROJECT_ID") == "" || os.Getenv("TOPIC_NAME") == "" {
 		return
 	}
 	ok := FLBPluginFlush(nil, 0, nil)
@@ -89,11 +84,10 @@ func TestFLBPluginFlush(t *testing.T) {
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
-	jwtPath := os.Getenv("JWT_PATH")
-	if projectId == "" || topicName == "" || jwtPath == "" {
+	if projectId == "" || topicName == "" {
 		return
 	}
-	keeper, err := NewKeeper(projectId, topicName, jwtPath, nil)
+	keeper, err := NewKeeper(projectId, topicName, nil)
 	assert.NoError(err)
 	sub := keeper.(*GooglePubSub).client.Subscription(topicName)
 	go func() {

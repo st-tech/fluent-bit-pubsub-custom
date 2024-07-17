@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
 )
 
 type Keeper interface {
@@ -21,29 +18,23 @@ type GooglePubSub struct {
 	topic  *pubsub.Topic
 }
 
-func NewKeeper(projectId, topicName, jwtPath string,
+func NewKeeper(projectId, topicName string,
 	publishSetting *pubsub.PublishSettings) (Keeper, error) {
-	if projectId == "" || topicName == "" || jwtPath == "" {
+	if projectId == "" || topicName == "" {
 		return nil, fmt.Errorf("[err] NewKeeper empty params")
 	}
-
-	keyBytes, err := os.ReadFile(jwtPath)
-	if err != nil {
-		return nil, errors.Wrap(err, "[err] jwt path")
-	}
-
-	config, err := google.JWTConfigFromJSON(keyBytes, pubsub.ScopePubSub)
-	if err != nil {
-		return nil, errors.Wrap(err, "[err] jwt config")
-	}
-
 	ctx := context.Background()
-	client, err := pubsub.NewClient(ctx, projectId, option.WithTokenSource(config.TokenSource(ctx)))
+
+	// ADC based authentication
+	// https://cloud.google.com/docs/authentication/application-default-credentials
+	client, err := pubsub.NewClient(ctx, projectId)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "[err] pubsub client")
 	}
 
 	topic := client.Topic(topicName)
+
 	if publishSetting != nil {
 		topic.PublishSettings = *publishSetting
 	} else {
