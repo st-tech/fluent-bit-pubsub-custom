@@ -8,18 +8,24 @@ import (
 	"time"
 
 	"cloud.google.com/go/pubsub"
-
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewKeeper(t *testing.T) {
 	assert := assert.New(t)
 
-	_, err := NewKeeper("", "", nil)
+	err := godotenv.Load()
+	if err != nil {
+		t.Log("Error loading .env file")
+	}
+
+	_, err = NewKeeper("", "", nil)
 	assert.Error(err)
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
+
 	if projectId == "" || topicName == "" {
 		return
 	}
@@ -42,6 +48,11 @@ func TestNewKeeper(t *testing.T) {
 
 func TestGooglePubSub_Send(t *testing.T) {
 	assert := assert.New(t)
+
+	err := godotenv.Load()
+	if err != nil {
+		t.Log("Error loading .env file")
+	}
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
@@ -69,6 +80,11 @@ func TestGooglePubSub_Send(t *testing.T) {
 
 func TestGooglePubSub_Stop(t *testing.T) {
 	assert := assert.New(t)
+
+	err := godotenv.Load()
+	if err != nil {
+		t.Log("Error loading .env file")
+	}
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
