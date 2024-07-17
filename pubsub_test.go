@@ -15,20 +15,19 @@ import (
 func TestNewKeeper(t *testing.T) {
 	assert := assert.New(t)
 
-	_, err := NewKeeper("", "", "", nil)
+	_, err := NewKeeper("", "", nil)
 	assert.Error(err)
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
-	jwtPath := os.Getenv("JWT_PATH")
-	if projectId == "" || topicName == "" || jwtPath == "" {
+	if projectId == "" || topicName == "" {
 		return
 	}
 
-	_, err = NewKeeper(projectId, topicName, jwtPath, nil)
+	_, err = NewKeeper(projectId, topicName, nil)
 	assert.NoError(err)
 
-	keeper, err := NewKeeper(projectId, topicName, jwtPath, &pubsub.PublishSettings{
+	keeper, err := NewKeeper(projectId, topicName, &pubsub.PublishSettings{
 		ByteThreshold:  10,
 		CountThreshold: 10,
 		DelayThreshold: 1 * time.Second,
@@ -46,13 +45,13 @@ func TestGooglePubSub_Send(t *testing.T) {
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
-	jwtPath := os.Getenv("JWT_PATH")
-	if projectId == "" || topicName == "" || jwtPath == "" {
+
+	if projectId == "" || topicName == "" {
 		return
 	}
 
 	ctx := context.Background()
-	keeper, err := NewKeeper(projectId, topicName, jwtPath, nil)
+	keeper, err := NewKeeper(projectId, topicName, nil)
 	assert.NoError(err)
 
 	result := keeper.Send(ctx, []byte("aaa"))
@@ -73,12 +72,11 @@ func TestGooglePubSub_Stop(t *testing.T) {
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
-	jwtPath := os.Getenv("JWT_PATH")
-	if projectId == "" || topicName == "" || jwtPath == "" {
+	if projectId == "" || topicName == "" {
 		return
 	}
 
-	keeper, err := NewKeeper(projectId, topicName, jwtPath, nil)
+	keeper, err := NewKeeper(projectId, topicName, nil)
 	assert.NoError(err)
 	keeper.Stop()
 }

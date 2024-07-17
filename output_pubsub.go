@@ -62,7 +62,6 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	var err error
 	project := wrapper.GetConfigKey(ctx, "Project")
 	topic := wrapper.GetConfigKey(ctx, "Topic")
-	jwtPath := wrapper.GetConfigKey(ctx, "JwtPath")
 	dg := wrapper.GetConfigKey(ctx, "Debug")
 	to := wrapper.GetConfigKey(ctx, "Timeout")
 	bt := wrapper.GetConfigKey(ctx, "ByteThreshold")
@@ -71,7 +70,6 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 
 	fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
 	fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
-	fmt.Printf("[pubsub-go] plugin parameter jwtPath = '%s'\n", jwtPath)
 	fmt.Printf("[pubsub-go] plugin parameter debug = '%s'\n", dg)
 	fmt.Printf("[pubsub-go] plugin parameter timeout = '%s'\n", to)
 	fmt.Printf("[pubsub-go] plugin parameter byte threshold = '%s'\n", bt)
@@ -132,7 +130,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		Timeout:        timeout,
 	}
 
-	keeper, err := NewKeeper(project, topic, jwtPath, &publishSetting)
+	keeper, err := NewKeeper(project, topic, &publishSetting)
 	if err != nil {
 		fmt.Printf("[err][init] %+v\n", err)
 		return output.FLB_ERROR
