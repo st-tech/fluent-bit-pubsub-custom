@@ -18,6 +18,7 @@ import "os"
 var (
 	plugin   Keeper
 	hostname string
+	format   string
 	wrapper  = OutputWrapper(&Output{})
 
 	timeout        = pubsub.DefaultPublishSettings.Timeout
@@ -67,6 +68,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	bt := wrapper.GetConfigKey(ctx, "ByteThreshold")
 	ct := wrapper.GetConfigKey(ctx, "CountThreshold")
 	dt := wrapper.GetConfigKey(ctx, "DelayThreshold")
+	ft := wrapper.GetConfigKey(ctx, "Format")
 
 	fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
 	fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
@@ -75,6 +77,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	fmt.Printf("[pubsub-go] plugin parameter byte threshold = '%s'\n", bt)
 	fmt.Printf("[pubsub-go] plugin parameter count threshold = '%s'\n", ct)
 	fmt.Printf("[pubsub-go] plugin parameter delay threshold = '%s'\n", dt)
+	fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
 
 	hostname, err = os.Hostname()
 	if err != nil {
@@ -123,6 +126,12 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		}
 		delayThreshold = time.Duration(v) * time.Millisecond
 	}
+	if _, ok := supportFormats[ft]; ok {
+		format = ft
+	} else {
+		fmt.Printf("[err][init] unsupported format '%s'\n", ft)
+		return output.FLB_ERROR
+	}
 	publishSetting := pubsub.PublishSettings{
 		ByteThreshold:  byteThreshold,
 		CountThreshold: countThreshold,
@@ -158,10 +167,22 @@ func FLBPluginFlush(data unsafe.Pointer, length C.int, tag *C.char) int {
 			break
 		}
 		timestamp := ts.(output.FLBTime)
-		for k, v := range record {
-			//fmt.Printf("[%s] %s %s %v \n", tagname, timestamp.String(), k, v)
-			_, _, _ = k, timestamp, tagname
-			results = append(results, plugin.Send(ctx, interfaceToBytes(v)))
+
+		if formatter, ok := supportFormats[format]; ok {
+			fmt.Printf("[pubsub-go] format = '%s'\n", format)
+			msg, err := formatter.Encode(record)
+			if err != nil {
+				fmt.Printf("[err][encode] %+v \n", err)
+				return output.FLB_ERROR
+			}
+			results = append(results, plugin.Send(ctx, msg))
+		} else {
+			for k, v := range record {
+				//fmt.Printf("[%s] %s %s %v \n", tagname, timestamp.String(), k, v)
+				_, _, _ = k, timestamp, tagname
+				results = append(results, plugin.Send(ctx, interfaceToBytes(v)))
+			}
+
 		}
 	}
 	for _, result := range results {

@@ -29,13 +29,15 @@ $ bash make.sh build_linux
 ### configuration options for fluent-bit.conf
 | Key           | Description                                    | Default        |
 | ----------------|------------------------------------------------|----------------|
-| Project         | google cloud project id | NONE(required) |
-| Topic           | google pubsub topic name | NONE(required) |
-| Debug           | print debug log | false(optional) |
-| Timeout         | the maximum time that the client will attempt to publish a bundle of messages. (millsecond) | 60000 (optional)|
-| DelayThreshold  | publish a non-empty batch after this delay has passed. (millsecond) | 1  |
-| ByteThreshold   | publish a batch when its size in bytes reaches this value. | 1000000 |
-| CountThreshold  | publish a batch when it has been reached count of messages. | 100  |
+| Project         | Google Cloud project ID | NONE(required) |
+| Topic           | Google Cloud Pub/Sub topic name | NONE(required) |
+| Format          | The format to encode the message. Supported formats are json and map value | map value(optional) |
+| Debug           | Print debug log | false(optional) |
+| Timeout         | The maximum time that the client will attempt to publish a bundle of messages. (millsecond) | 60000 (optional)|
+| DelayThreshold  | Publish a non-empty batch after this delay has passed. (millsecond) | 1  |
+| ByteThreshold   | Publish a batch when its size in bytes reaches this value. | 1000000 |
+| CountThreshold  | Publish a batch when it has been reached count of messages. | 100  |
+
 
 ### Example fluent-bit.conf
 ```conf
@@ -44,6 +46,7 @@ $ bash make.sh build_linux
     Match *
     Project your-project(custom)
     Topic your-topic-name(custom)
+    Format json
 ```
 
 ### Example exec

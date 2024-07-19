@@ -25,28 +25,26 @@ func (o *testOutput) Register(ctx unsafe.Pointer, name string, desc string) int 
 }
 
 func (o *testOutput) GetConfigKey(ctx unsafe.Pointer, key string) string {
-	if key == "Project" {
+	switch key {
+	case "Project":
 		return os.Getenv("PROJECT_ID")
-	}
-	if key == "Topic" {
+	case "Topic":
 		return os.Getenv("TOPIC_NAME")
-	}
-	if key == "Debug" {
+	case "Debug":
 		return "true"
-	}
-	if key == "Timeout" {
+	case "Timeout":
 		return "10000"
-	}
-	if key == "ByteThreshold" {
+	case "ByteThreshold":
 		return "1000000"
-	}
-	if key == "CountThreshold" {
+	case "CountThreshold":
 		return "100"
-	}
-	if key == "DelayThreshold" {
+	case "DelayThreshold":
 		return "100"
+	case "Format":
+		return "json"
+	default:
+		return ""
 	}
-	return ""
 }
 
 func (o *testOutput) NewDecoder(data unsafe.Pointer, length int) *output.FLBDecoder {
