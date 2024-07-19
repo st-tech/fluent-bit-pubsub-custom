@@ -1,8 +1,9 @@
-module github.com/gjbae1212/fluent-bit-pubsub
+module github.com/st-tech/fluent-bit-pubsub-custom
 
 require (
 	cloud.google.com/go/pubsub v1.40.0
 	github.com/fluent/fluent-bit-go v0.0.0-20230731091245-a7a013e2473c
+	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
 )
@@ -23,7 +24,6 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.5 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
