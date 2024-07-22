@@ -31,7 +31,8 @@ $ bash make.sh build_linux
 | ----------------|------------------------------------------------|----------------|
 | Project         | Google Cloud project ID | NONE(required) |
 | Topic           | Google Cloud Pub/Sub topic name | NONE(required) |
-| Format          | The format to encode the message. Supported formats are json and map value | map value(optional) |
+| Format          | The type of message to be sent to pubsub. Currently, only `json` is supported. | NONE(optional) |
+| Attributes      | JSON string specifying message attributes | NONE(optional) |
 | Debug           | Print debug log | false(optional) |
 | Timeout         | The maximum time that the client will attempt to publish a bundle of messages. (millsecond) | 60000 (optional)|
 | DelayThreshold  | Publish a non-empty batch after this delay has passed. (millsecond) | 1  |
@@ -47,6 +48,7 @@ $ bash make.sh build_linux
     Project your-project(custom)
     Topic your-topic-name(custom)
     Format json
+    Attributes {"key1":"value1","key2":"value2"} 
 ```
 
 ### Example exec

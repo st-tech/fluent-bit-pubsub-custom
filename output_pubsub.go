@@ -13,13 +13,18 @@ import (
 
 	"github.com/fluent/fluent-bit-go/output"
 )
-import "os"
+import (
+	"encoding/json"
+	"os"
+)
 
 var (
-	plugin   Keeper
-	hostname string
-	format   string
-	wrapper  = OutputWrapper(&Output{})
+	plugin     Keeper
+	hostname   string
+	format     string
+	attributes map[string]string
+
+	wrapper = OutputWrapper(&Output{})
 
 	timeout        = pubsub.DefaultPublishSettings.Timeout
 	delayThreshold = pubsub.DefaultPublishSettings.DelayThreshold
@@ -69,15 +74,17 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	ct := wrapper.GetConfigKey(ctx, "CountThreshold")
 	dt := wrapper.GetConfigKey(ctx, "DelayThreshold")
 	ft := wrapper.GetConfigKey(ctx, "Format")
+	ab := wrapper.GetConfigKey(ctx, "Attributes")
 
-	fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
-	fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
-	fmt.Printf("[pubsub-go] plugin parameter debug = '%s'\n", dg)
-	fmt.Printf("[pubsub-go] plugin parameter timeout = '%s'\n", to)
-	fmt.Printf("[pubsub-go] plugin parameter byte threshold = '%s'\n", bt)
-	fmt.Printf("[pubsub-go] plugin parameter count threshold = '%s'\n", ct)
-	fmt.Printf("[pubsub-go] plugin parameter delay threshold = '%s'\n", dt)
-	fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
+	// fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
+	// fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
+	// fmt.Printf("[pubsub-go] plugin parameter debug = '%s'\n", dg)
+	// fmt.Printf("[pubsub-go] plugin parameter timeout = '%s'\n", to)
+	// fmt.Printf("[pubsub-go] plugin parameter byte threshold = '%s'\n", bt)
+	// fmt.Printf("[pubsub-go] plugin parameter count threshold = '%s'\n", ct)
+	// fmt.Printf("[pubsub-go] plugin parameter delay threshold = '%s'\n", dt)
+	// fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
+	// fmt.Printf("[pubsub-go] plugin parameter attributes = '%s'\n", ab)
 
 	hostname, err = os.Hostname()
 	if err != nil {
@@ -85,7 +92,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		return output.FLB_ERROR
 	}
 
-	fmt.Printf("[pubsub-go] plugin hostname = '%s'\n", hostname)
+	// fmt.Printf("[pubsub-go] plugin hostname = '%s'\n", hostname)
 
 	if dg != "" {
 		debug, err = strconv.ParseBool(dg)
@@ -125,6 +132,13 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 			return output.FLB_ERROR
 		}
 		delayThreshold = time.Duration(v) * time.Millisecond
+	}
+	if ab != "" {
+		err = json.Unmarshal([]byte(ab), &attributes)
+		if err != nil {
+			fmt.Printf("[err][init] %+v\n", err)
+			return output.FLB_ERROR
+		}
 	}
 	if _, ok := supportFormats[ft]; ok {
 		format = ft
@@ -169,18 +183,18 @@ func FLBPluginFlush(data unsafe.Pointer, length C.int, tag *C.char) int {
 		timestamp := ts.(output.FLBTime)
 
 		if formatter, ok := supportFormats[format]; ok {
-			fmt.Printf("[pubsub-go] format = '%s'\n", format)
+			// fmt.Printf("[pubsub-go] format = '%s'\n", format)
 			msg, err := formatter.Encode(record)
 			if err != nil {
 				fmt.Printf("[err][encode] %+v \n", err)
 				return output.FLB_ERROR
 			}
-			results = append(results, plugin.Send(ctx, msg))
+			results = append(results, plugin.Send(ctx, msg, attributes))
 		} else {
 			for k, v := range record {
 				//fmt.Printf("[%s] %s %s %v \n", tagname, timestamp.String(), k, v)
 				_, _, _ = k, timestamp, tagname
-				results = append(results, plugin.Send(ctx, interfaceToBytes(v)))
+				results = append(results, plugin.Send(ctx, interfaceToBytes(v), attributes))
 			}
 
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"testing"
@@ -65,7 +66,19 @@ func TestGooglePubSub_Send(t *testing.T) {
 	keeper, err := NewKeeper(projectId, topicName, nil)
 	assert.NoError(err)
 
-	result := keeper.Send(ctx, []byte("aaa"))
+	data := map[string]interface{}{
+		"key1": "value1",
+		"key2": "value2",
+	}
+
+	attributes := map[string]string{
+		"attr_key1": "attr_value1",
+		"attr_key2": "attr_value2",
+	}
+	msg, err := json.Marshal(data)
+	assert.NoError(err)
+	result := keeper.Send(ctx, msg, attributes)
+
 	_, err = result.Get(ctx)
 	assert.NoError(err)
 	sub := keeper.(*GooglePubSub).client.Subscription(topicName)
