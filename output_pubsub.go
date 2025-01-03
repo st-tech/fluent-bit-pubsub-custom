@@ -26,11 +26,12 @@ var (
 
 	wrapper = OutputWrapper(&Output{})
 
-	timeout        = pubsub.DefaultPublishSettings.Timeout
-	delayThreshold = pubsub.DefaultPublishSettings.DelayThreshold
-	countThreshold = pubsub.DefaultPublishSettings.CountThreshold
-	byteThreshold  = pubsub.DefaultPublishSettings.ByteThreshold
-	debug          = false
+	timeout           = pubsub.DefaultPublishSettings.Timeout
+	delayThreshold    = pubsub.DefaultPublishSettings.DelayThreshold
+	countThreshold    = pubsub.DefaultPublishSettings.CountThreshold
+	byteThreshold     = pubsub.DefaultPublishSettings.ByteThreshold
+	bufferedByteLimit = pubsub.DefaultPublishSettings.BufferedByteLimit
+	debug             = false
 )
 
 type Output struct{}
@@ -75,6 +76,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	dt := wrapper.GetConfigKey(ctx, "DelayThreshold")
 	ft := wrapper.GetConfigKey(ctx, "Format")
 	ab := wrapper.GetConfigKey(ctx, "Attributes")
+	bbl := wrapper.GetConfigKey(ctx, "BufferedByteLimit")
 
 	// fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
 	// fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
@@ -85,6 +87,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	// fmt.Printf("[pubsub-go] plugin parameter delay threshold = '%s'\n", dt)
 	// fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
 	// fmt.Printf("[pubsub-go] plugin parameter attributes = '%s'\n", ab)
+	// fmt.Printf("[pubsub-go] plugin parameter buffered byte limit = '%s'\n", bbl)
 
 	hostname, err = os.Hostname()
 	if err != nil {
@@ -140,6 +143,14 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 			return output.FLB_ERROR
 		}
 	}
+	if bbl != "" {
+		v, err := strconv.Atoi(bbl)
+		if err != nil {
+			fmt.Printf("[err][init] %+v\n", err)
+			return output.FLB_ERROR
+		}
+		bufferedByteLimit = v
+	}
 	if _, ok := supportFormats[ft]; ok {
 		format = ft
 	} else {
@@ -147,10 +158,11 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		return output.FLB_ERROR
 	}
 	publishSetting := pubsub.PublishSettings{
-		ByteThreshold:  byteThreshold,
-		CountThreshold: countThreshold,
-		DelayThreshold: delayThreshold,
-		Timeout:        timeout,
+		ByteThreshold:     byteThreshold,
+		CountThreshold:    countThreshold,
+		DelayThreshold:    delayThreshold,
+		Timeout:           timeout,
+		BufferedByteLimit: bufferedByteLimit,
 	}
 
 	keeper, err := NewKeeper(project, topic, &publishSetting)

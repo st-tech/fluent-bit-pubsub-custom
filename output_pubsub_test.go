@@ -42,6 +42,8 @@ func (o *testOutput) GetConfigKey(ctx unsafe.Pointer, key string) string {
 		return "100"
 	case "Format":
 		return "json"
+	case "BufferedByteLimit":
+		return "1000000"
 	default:
 		return ""
 	}
