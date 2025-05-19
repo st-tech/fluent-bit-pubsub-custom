@@ -31,6 +31,7 @@ $ make build-linux
 | ----------------|------------------------------------------------|----------------|
 | Project         | Google Cloud project ID | NONE(required) |
 | Topic           | Google Cloud Pub/Sub topic name | NONE(required) |
+| Region          | Google Cloud Pub/Sub region (e.g., asia-northeast1, us-central1) | NONE(optional) |
 | Format          | The type of message to be sent to pubsub. Currently, only `json` is supported. | NONE(optional) |
 | Attributes      | JSON string specifying message attributes | NONE(optional) |
 | Debug           | Print debug log | False(optional) |
@@ -48,6 +49,7 @@ $ make build-linux
     Match *
     Project your-project(custom)
     Topic your-topic-name(custom)
+    Region asia-northeast1
     Format json
     Attributes {"key1":"value1","key2":"value2"} 
 ```

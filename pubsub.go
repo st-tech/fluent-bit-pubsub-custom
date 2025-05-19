@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"cloud.google.com/go/pubsub"
+	"google.golang.org/api/option"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +19,7 @@ type GooglePubSub struct {
 	topic  *pubsub.Topic
 }
 
-func NewKeeper(projectId, topicName string,
+func NewKeeper(projectId, topicName, region string,
 	publishSetting *pubsub.PublishSettings) (Keeper, error) {
 	if projectId == "" || topicName == "" {
 		return nil, fmt.Errorf("[err] NewKeeper empty params")
@@ -27,7 +28,14 @@ func NewKeeper(projectId, topicName string,
 
 	// ADC based authentication
 	// https://cloud.google.com/docs/authentication/application-default-credentials
-	client, err := pubsub.NewClient(ctx, projectId)
+	var opts []option.ClientOption
+	
+	if region != "" {
+		endpoint := fmt.Sprintf("https://%s-pubsub.googleapis.com/", region)
+		opts = append(opts, option.WithEndpoint(endpoint))
+	}
+	
+	client, err := pubsub.NewClient(ctx, projectId, opts...)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "[err] pubsub client")
