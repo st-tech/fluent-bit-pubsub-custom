@@ -26,15 +26,15 @@ func NewKeeper(projectId, topicName, region string,
 	}
 	ctx := context.Background()
 
-	// ADC based authentication
-	// https://cloud.google.com/docs/authentication/application-default-credentials
 	var opts []option.ClientOption
 	
 	if region != "" {
-		endpoint := fmt.Sprintf("https://%s-pubsub.googleapis.com/", region)
+		endpoint := fmt.Sprintf("%s-pubsub.googleapis.com:443", region)
 		opts = append(opts, option.WithEndpoint(endpoint))
 	}
 	
+	// ADC based authentication
+	// https://cloud.google.com/docs/authentication/application-default-credentials
 	client, err := pubsub.NewClient(ctx, projectId, opts...)
 
 	if err != nil {
