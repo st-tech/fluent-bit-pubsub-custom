@@ -32,6 +32,7 @@ var (
 	byteThreshold     = pubsub.DefaultPublishSettings.ByteThreshold
 	bufferedByteLimit = pubsub.DefaultPublishSettings.BufferedByteLimit
 	debug             = false
+	region            = ""
 )
 
 type Output struct{}
@@ -77,6 +78,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	ft := wrapper.GetConfigKey(ctx, "Format")
 	ab := wrapper.GetConfigKey(ctx, "Attributes")
 	bbl := wrapper.GetConfigKey(ctx, "BufferedByteLimit")
+	rg := wrapper.GetConfigKey(ctx, "Region")
 
 	// fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
 	// fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
@@ -88,6 +90,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	// fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
 	// fmt.Printf("[pubsub-go] plugin parameter attributes = '%s'\n", ab)
 	// fmt.Printf("[pubsub-go] plugin parameter buffered byte limit = '%s'\n", bbl)
+	// fmt.Printf("[pubsub-go] plugin parameter region = '%s'\n", rg)
 
 	hostname, err = os.Hostname()
 	if err != nil {
@@ -151,6 +154,9 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		}
 		bufferedByteLimit = v
 	}
+	if rg != "" {
+		region = rg
+	}
 	if _, ok := supportFormats[ft]; ok {
 		format = ft
 	} else {
@@ -165,7 +171,7 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		BufferedByteLimit: bufferedByteLimit,
 	}
 
-	keeper, err := NewKeeper(project, topic, &publishSetting)
+	keeper, err := NewKeeper(project, topic, region, &publishSetting)
 	if err != nil {
 		fmt.Printf("[err][init] %+v\n", err)
 		return output.FLB_ERROR
