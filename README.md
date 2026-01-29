@@ -38,6 +38,8 @@ $ bash make.sh build_linux
 | DelayThreshold  | Publish a non-empty batch after this delay has passed. (millsecond) | 1  |
 | ByteThreshold   | Publish a batch when its size in bytes reaches this value. | 1000000 |
 | CountThreshold  | Publish a batch when it has been reached count of messages. | 100  |
+| ParallelConfirm | Enable parallel ACK waiting for publish results. Improves performance by waiting for multiple ACKs concurrently instead of sequentially. | false (optional) |
+| ConfirmWorkers  | Number of concurrent workers for parallel ACK waiting. Only effective when ParallelConfirm is true. Must be between 1 and 100. | 10 (optional) |
 
 
 ### Example fluent-bit.conf
@@ -48,7 +50,9 @@ $ bash make.sh build_linux
     Project your-project(custom)
     Topic your-topic-name(custom)
     Format json
-    Attributes {"key1":"value1","key2":"value2"} 
+    Attributes {"key1":"value1","key2":"value2"}
+    ParallelConfirm true
+    ConfirmWorkers 10
 ```
 
 ### Example exec
