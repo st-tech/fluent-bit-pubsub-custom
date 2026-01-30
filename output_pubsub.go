@@ -26,12 +26,6 @@ var (
 	attributes map[string]string
 
 	wrapper = OutputWrapper(&Output{})
-
-	timeout        = pubsub.DefaultPublishSettings.Timeout
-	delayThreshold = pubsub.DefaultPublishSettings.DelayThreshold
-	countThreshold = pubsub.DefaultPublishSettings.CountThreshold
-	byteThreshold  = pubsub.DefaultPublishSettings.ByteThreshold
-	debug          = false
 	
 	parallelConfirm = false
 	confirmWorkers = 10
