@@ -21,20 +21,21 @@ func TestNewKeeper(t *testing.T) {
 		t.Log("Error loading .env file")
 	}
 
-	_, err = NewKeeper("", "", nil)
+	_, err = NewKeeper("", "", "", nil)
 	assert.Error(err)
 
 	projectId := os.Getenv("PROJECT_ID")
 	topicName := os.Getenv("TOPIC_NAME")
+	region := os.Getenv("REGION")
 
 	if projectId == "" || topicName == "" {
 		return
 	}
 
-	_, err = NewKeeper(projectId, topicName, nil)
+	_, err = NewKeeper(projectId, topicName, "", nil)
 	assert.NoError(err)
 
-	keeper, err := NewKeeper(projectId, topicName, &pubsub.PublishSettings{
+	keeper, err := NewKeeper(projectId, topicName, region, &pubsub.PublishSettings{
 		ByteThreshold:  10,
 		CountThreshold: 10,
 		DelayThreshold: 1 * time.Second,
@@ -63,7 +64,7 @@ func TestGooglePubSub_Send(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	keeper, err := NewKeeper(projectId, topicName, nil)
+	keeper, err := NewKeeper(projectId, topicName, "", nil)
 	assert.NoError(err)
 
 	data := map[string]interface{}{
@@ -105,7 +106,7 @@ func TestGooglePubSub_Stop(t *testing.T) {
 		return
 	}
 
-	keeper, err := NewKeeper(projectId, topicName, nil)
+	keeper, err := NewKeeper(projectId, topicName, "", nil)
 	assert.NoError(err)
 	keeper.Stop()
 }

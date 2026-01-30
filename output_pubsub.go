@@ -35,6 +35,13 @@ var (
 	
 	parallelConfirm = false
 	confirmWorkers = 10
+	timeout           = pubsub.DefaultPublishSettings.Timeout
+	delayThreshold    = pubsub.DefaultPublishSettings.DelayThreshold
+	countThreshold    = pubsub.DefaultPublishSettings.CountThreshold
+	byteThreshold     = pubsub.DefaultPublishSettings.ByteThreshold
+	bufferedByteLimit = pubsub.DefaultPublishSettings.BufferedByteLimit
+	debug             = false
+	region            = ""
 )
 
 type Output struct{}
@@ -81,6 +88,8 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	ab := wrapper.GetConfigKey(ctx, "Attributes")
 	pc := wrapper.GetConfigKey(ctx, "ParallelConfirm")
 	cw := wrapper.GetConfigKey(ctx, "ConfirmWorkers")
+	bbl := wrapper.GetConfigKey(ctx, "BufferedByteLimit")
+	rg := wrapper.GetConfigKey(ctx, "Region")
 
 	// fmt.Printf("[pubsub-go] plugin parameter project = '%s'\n", project)
 	// fmt.Printf("[pubsub-go] plugin parameter topic = '%s'\n", topic)
@@ -91,6 +100,8 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	// fmt.Printf("[pubsub-go] plugin parameter delay threshold = '%s'\n", dt)
 	// fmt.Printf("[pubsub-go] plugin parameter format = '%s'\n", ft)
 	// fmt.Printf("[pubsub-go] plugin parameter attributes = '%s'\n", ab)
+	// fmt.Printf("[pubsub-go] plugin parameter buffered byte limit = '%s'\n", bbl)
+	// fmt.Printf("[pubsub-go] plugin parameter region = '%s'\n", rg)
 
 	hostname, err = os.Hostname()
 	if err != nil {
@@ -148,6 +159,8 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	}
 	if pc != "" {
 		parallelConfirm, err = strconv.ParseBool(pc)
+	if bbl != "" {
+		v, err := strconv.Atoi(bbl)
 		if err != nil {
 			fmt.Printf("[err][init] %+v\n", err)
 			return output.FLB_ERROR
@@ -162,6 +175,10 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		if v > 0 && v <= 100 {
 			confirmWorkers = v
 		}
+		bufferedByteLimit = v
+	}
+	if rg != "" {
+		region = rg
 	}
 	if _, ok := supportFormats[ft]; ok {
 		format = ft
@@ -170,13 +187,14 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		return output.FLB_ERROR
 	}
 	publishSetting := pubsub.PublishSettings{
-		ByteThreshold:  byteThreshold,
-		CountThreshold: countThreshold,
-		DelayThreshold: delayThreshold,
-		Timeout:        timeout,
+		ByteThreshold:     byteThreshold,
+		CountThreshold:    countThreshold,
+		DelayThreshold:    delayThreshold,
+		Timeout:           timeout,
+		BufferedByteLimit: bufferedByteLimit,
 	}
 
-	keeper, err := NewKeeper(project, topic, &publishSetting)
+	keeper, err := NewKeeper(project, topic, region, &publishSetting)
 	if err != nil {
 		fmt.Printf("[err][init] %+v\n", err)
 		return output.FLB_ERROR

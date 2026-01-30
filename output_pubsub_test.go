@@ -122,6 +122,10 @@ func (o *testOutput) GetConfigKey(ctx unsafe.Pointer, key string) string {
 		return ""
 	case "ConfirmWorkers":
 		return ""
+	case "BufferedByteLimit":
+		return "1000000"
+	case "Region":
+		return os.Getenv("REGION")
 	default:
 		return ""
 	}
@@ -175,7 +179,7 @@ func TestFLBPluginFlush(t *testing.T) {
 	if projectId == "" || topicName == "" {
 		return
 	}
-	keeper, err := NewKeeper(projectId, topicName, nil)
+	keeper, err := NewKeeper(projectId, topicName, "", nil)
 	assert.NoError(err)
 	sub := keeper.(*GooglePubSub).client.Subscription(topicName)
 	go func() {
