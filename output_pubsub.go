@@ -4,6 +4,7 @@ import (
 	"C"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -25,7 +26,9 @@ var (
 	attributes map[string]string
 
 	wrapper = OutputWrapper(&Output{})
-
+	
+	parallelConfirm = false
+	confirmWorkers = 10
 	timeout           = pubsub.DefaultPublishSettings.Timeout
 	delayThreshold    = pubsub.DefaultPublishSettings.DelayThreshold
 	countThreshold    = pubsub.DefaultPublishSettings.CountThreshold
@@ -77,6 +80,8 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	dt := wrapper.GetConfigKey(ctx, "DelayThreshold")
 	ft := wrapper.GetConfigKey(ctx, "Format")
 	ab := wrapper.GetConfigKey(ctx, "Attributes")
+	pc := wrapper.GetConfigKey(ctx, "ParallelConfirm")
+	cw := wrapper.GetConfigKey(ctx, "ConfirmWorkers")
 	bbl := wrapper.GetConfigKey(ctx, "BufferedByteLimit")
 	rg := wrapper.GetConfigKey(ctx, "Region")
 
@@ -146,11 +151,23 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 			return output.FLB_ERROR
 		}
 	}
+	if pc != "" {
+		parallelConfirm, err = strconv.ParseBool(pc)
 	if bbl != "" {
 		v, err := strconv.Atoi(bbl)
 		if err != nil {
 			fmt.Printf("[err][init] %+v\n", err)
 			return output.FLB_ERROR
+		}
+	}
+	if cw != "" {
+		v, err := strconv.Atoi(cw)
+		if err != nil {
+			fmt.Printf("[err][init] %+v\n", err)
+			return output.FLB_ERROR
+		}
+		if v > 0 && v <= 100 {
+			confirmWorkers = v
 		}
 		bufferedByteLimit = v
 	}
@@ -217,15 +234,55 @@ func FLBPluginFlush(data unsafe.Pointer, length C.int, tag *C.char) int {
 
 		}
 	}
-	for _, result := range results {
-		if _, err := result.Get(ctx); err != nil {
-			// if timeout is raised.
-			if err == context.DeadlineExceeded || err == context.Canceled {
-				fmt.Printf("[err][publish][retry] %+v \n", err)
-				return output.FLB_RETRY
+	
+	if parallelConfirm {
+		var wg sync.WaitGroup
+		var hasRetryError bool
+		var mutex sync.Mutex
+		errors := []error{}
+		
+		batchSize := confirmWorkers
+		for i := 0; i < len(results); i += batchSize {
+			end := i + batchSize
+			if end > len(results) {
+				end = len(results)
 			}
-			// else error is next
+			
+			for j := i; j < end; j++ {
+				wg.Add(1)
+				go func(result *pubsub.PublishResult) {
+					defer wg.Done()
+					if _, err := result.Get(ctx); err != nil {
+						mutex.Lock()
+						errors = append(errors, err)
+						if err == context.DeadlineExceeded || err == context.Canceled {
+							hasRetryError = true
+						}
+						mutex.Unlock()
+					}
+				}(results[j])
+			}
+			
+			wg.Wait()
+		}
+		
+		if hasRetryError {
+			fmt.Printf("[err][publish][retry] Found retry errors in batch\n")
+			return output.FLB_RETRY
+		}
+		
+		for _, err := range errors {
 			fmt.Printf("[err][publish][don't retry] %+v \n", err)
+		}
+	} else {
+		for _, result := range results {
+			if _, err := result.Get(ctx); err != nil {
+				if err == context.DeadlineExceeded || err == context.Canceled {
+					fmt.Printf("[err][publish][retry] %+v \n", err)
+					return output.FLB_RETRY
+				}
+				fmt.Printf("[err][publish][don't retry] %+v \n", err)
+			}
 		}
 	}
 	return output.FLB_OK

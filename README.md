@@ -37,6 +37,10 @@ $ make build-linux
 | Debug           | Print debug log | False(optional) |
 | Timeout         | The maximum time that the client will attempt to publish a bundle of messages. (millsecond) | 60000(optional)|
 | DelayThreshold  | Publish a non-empty batch after this delay has passed. (millsecond) | 1  |
+| ByteThreshold   | Publish a batch when its size in bytes reaches this value. | 1000000 |
+| CountThreshold  | Publish a batch when it has been reached count of messages. | 100  |
+| ParallelConfirm | Enable parallel ACK waiting for publish results. Improves performance by waiting for multiple ACKs concurrently instead of sequentially. | false (optional) |
+| ConfirmWorkers  | Number of concurrent workers for parallel ACK waiting. Only effective when ParallelConfirm is true. Must be between 1 and 100. | 10 (optional) |
 | ByteThreshold   | Publish a batch when its size in bytes reaches this value. | 1000000(optional) |
 | CountThreshold  | Publish a batch when it has been reached count of messages. | 100(optional) |
 | BufferedByteLimit| The maximum number of bytes that the client will buffer before the messages are sent to Pub/Sub.(byte) | 10000000(optional)|
@@ -51,7 +55,9 @@ $ make build-linux
     Topic your-topic-name(custom)
     Region asia-northeast1
     Format json
-    Attributes {"key1":"value1","key2":"value2"} 
+    Attributes {"key1":"value1","key2":"value2"}
+    ParallelConfirm true
+    ConfirmWorkers 10
 ```
 
 ### Example exec
