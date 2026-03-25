@@ -153,12 +153,18 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 	}
 	if pc != "" {
 		parallelConfirm, err = strconv.ParseBool(pc)
+		if err != nil {
+			fmt.Printf("[err][init] %+v\n", err)
+			return output.FLB_ERROR
+		}
+	}
 	if bbl != "" {
 		v, err := strconv.Atoi(bbl)
 		if err != nil {
 			fmt.Printf("[err][init] %+v\n", err)
 			return output.FLB_ERROR
 		}
+		bufferedByteLimit = v
 	}
 	if cw != "" {
 		v, err := strconv.Atoi(cw)
@@ -169,7 +175,6 @@ func FLBPluginInit(ctx unsafe.Pointer) int {
 		if v > 0 && v <= 100 {
 			confirmWorkers = v
 		}
-		bufferedByteLimit = v
 	}
 	if rg != "" {
 		region = rg
