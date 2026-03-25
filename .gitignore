@@ -5,3 +5,4 @@ coverage.*
 *.h
 /bin
 .env*
+fluent-bit-pubsub-custom
