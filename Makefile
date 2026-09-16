@@ -2,7 +2,7 @@ CURRENT=$(shell pwd)
 OSNAME=linux
 ARCHNAME=amd64
 CONTAINER_NAME=fluent-bit-pubsub-custom
-GOLANG_IMAGE=golang:1.25.5
+GOLANG_IMAGE=golang:1.26.8
 
 local-build:
 	go build -buildmode=c-shared -o pubsub.so .
